@@ -1,39 +1,49 @@
-from watchlist_app.models import Movie
+from watchlist_app.models import WatchList, StreamPlatform
 from rest_framework import serializers
 
+class StreamPlatformSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StreamPlatform
+        fields = '__all__'
 
+class WatchlistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WatchList
+        fields = '__all__'
+
+# from watchlist_app.models import Movie
 # Model Serializer
 
-class MovieSerializer(serializers.ModelSerializer):
+# class MovieSerializer(serializers.ModelSerializer):
 
-    # Custom Serializer Field
-    nameLength = serializers.SerializerMethodField() # It is added to create a custom field in the serializer that is not present in the model, it is a read-only field that is calculated based on the value of another field (name in this case)
+#     # Custom Serializer Field
+#     nameLength = serializers.SerializerMethodField() # It is added to create a custom field in the serializer that is not present in the model, it is a read-only field that is calculated based on the value of another field (name in this case)
 
-    # defining custom field method
-    def get_nameLength(self, object):
-        return len(object.name)
+#     # defining custom field method
+#     def get_nameLength(self, object):
+#         return len(object.name)
 
-    class Meta:
-        model = Movie
-        fields = '__all__' # It is added to include all the fields of the model in the serializer, we can also specify the fields we want to include in the serializer by using a list of field names instead of '__all__'
+#     class Meta:
+#         model = Movie
+#         fields = '__all__' # It is added to include all the fields of the model in the serializer, we can also specify the fields we want to include in the serializer by using a list of field names instead of '__all__'
 
-        # fields = ['id', 'name', 'description'] # It is added to include only the specified fields of the model in the serializer(list)
+#         # fields = ['id', 'name', 'description'] # It is added to include only the specified fields of the model in the serializer(list)
 
-        # Scenario: if we have 20 fields and we just want 19 fields so to implement it we can use the exclude attribute instead of fields attribute and specify the field we want to exclude from the serializer
+#         # Scenario: if we have 20 fields and we just want 19 fields so to implement it we can use the exclude attribute instead of fields attribute and specify the field we want to exclude from the serializer
 
-        # exclude = ['isActive'] # It is added to exclude the specified field from the serializer, we now not need to specify the fields we want to include in the serializer
+#         # exclude = ['isActive'] # It is added to exclude the specified field from the serializer, we now not need to specify the fields we want to include in the serializer
     
-    # Field Level Validation
-    def validate_name(self, value):
-        if len(value) < 2:
-            raise serializers.ValidationError('Field Level: Name must be at least 2 characters long')
-        return value
+#     # Field Level Validation
+#     def validate_name(self, value):
+#         if len(value) < 2:
+#             raise serializers.ValidationError('Field Level: Name must be at least 2 characters long')
+#         return value
     
     # Object Level Validation
-    def validate(self, data):
-        if data['name'] == data['description']:
-            raise serializers.ValidationError('Object Level: Name and description cannot be the same')
-        return data
+    # def validate(self, data):
+    #     if data['name'] == data['description']:
+    #         raise serializers.ValidationError('Object Level: Name and description cannot be the same')
+    #     return data
 
 # Serializer
 
