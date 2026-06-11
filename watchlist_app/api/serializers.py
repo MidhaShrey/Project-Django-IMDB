@@ -1,6 +1,7 @@
 from watchlist_app.models import Movie
 from rest_framework import serializers
 
+# Custom Validator
 def nameLength(value):
     if len(value)<2:
         raise serializers.ValidationError('InLine Validation: Name must be at least 2 characters long')
