@@ -1,15 +1,29 @@
 from watchlist_app.models import WatchList, StreamPlatform
 from rest_framework import serializers
 
-class StreamPlatformSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StreamPlatform
-        fields = '__all__'
-
 class WatchlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = WatchList
         fields = '__all__'
+
+class StreamPlatformSerializer(serializers.ModelSerializer):
+    # watchlist = WatchlistSerializer(many=True, read_only=True) #1 # It is added to include the related watchlist objects
+
+    # watchlist = serializers.StringRelatedField(many=True) #2 # It is added to include the related watchlist objects as string representation of the object, it will call the __str__ method of the related model and return the string representation of the object
+
+    # watchlist = serializers.PrimaryKeyRelatedField(many=True, read_only=True) #3 # It is added to include the related watchlist objects as primary key of the object, it will return the primary key of the related model object
+
+    # watchlist = serializers.HyperlinkedRelatedField(
+    #     many=True, 
+    #     read_only=True, 
+    #     view_name='watchlist-details',
+    #     lookup_field='pk',
+    #     lookup_url_kwarg='primary_key'
+    # )
+    class Meta:
+        model = StreamPlatform
+        fields = '__all__'
+
 
 # from watchlist_app.models import Movie
 # Model Serializer
