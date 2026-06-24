@@ -3,12 +3,14 @@ from rest_framework.views import APIView # for class based views
 from rest_framework.response import Response
 from rest_framework import status
 from watchlist_app.models import WatchList, StreamPlatform
-from watchlist_app.api.serializers import WatchlistSerializer, StreamPlatformSerializer
+from watchlist_app.api.serializers import WatchlistSerializer, StreamPlatformSerializer, ReviewSerializer
 
+
+# class ReviewListAV(APIView):
 class StreamPlatformAV(APIView):
     def get(self, request):
         platform = StreamPlatform.objects.all()
-        serializer = StreamPlatformSerializer(platform, many=True, context={'request': request})
+        serializer = StreamPlatformSerializer(platform, many=True)
         return Response(serializer.data)
     
     def post(self, request):
@@ -25,7 +27,7 @@ class StreamPlatformDetailsAV(APIView):
             platform = StreamPlatform.objects.get(pk=primary_key)
         except StreamPlatform.DoesNotExist:
             return Response({'error': 'Stream Platform not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = StreamPlatformSerializer(platform, context={'request': request})
+        serializer = StreamPlatformSerializer(platform)
         return Response(serializer.data)
     def put(self, request, primary_key):
         try:

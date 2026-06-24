@@ -1,12 +1,18 @@
-from watchlist_app.models import WatchList, StreamPlatform
+from watchlist_app.models import Review, WatchList, StreamPlatform
 from rest_framework import serializers
 
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
 class WatchlistSerializer(serializers.ModelSerializer):
+    reviews = ReviewSerializer(many=True, read_only=True)
     class Meta:
         model = WatchList
         fields = '__all__'
 
-class StreamPlatformSerializer(serializers.HyperlinkedModelSerializer):
+class StreamPlatformSerializer(serializers.ModelSerializer):
     watchlist = WatchlistSerializer(many=True, read_only=True) #1 # It is added to include the related watchlist objects
 
     # watchlist = serializers.StringRelatedField(many=True) #2 # It is added to include the related watchlist objects as string representation of the object, it will call the __str__ method of the related model and return the string representation of the object
