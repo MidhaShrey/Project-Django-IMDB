@@ -1,12 +1,50 @@
 # from rest_framework.decorators import api_view # for function based views
 from rest_framework.views import APIView # for class based views
 from rest_framework.response import Response
-from rest_framework import status
-from watchlist_app.models import WatchList, StreamPlatform
-from watchlist_app.api.serializers import WatchlistSerializer, StreamPlatformSerializer, ReviewSerializer
+from rest_framework import status, mixins, generics
+from watchlist_app.models import (Review, WatchList, StreamPlatform)
+from watchlist_app.api.serializers import (WatchlistSerializer, StreamPlatformSerializer, ReviewSerializer)
 
+class ReviewCreate(generics.CreateAPIView):
+    serializer_class = ReviewSerializer
 
-# class ReviewListAV(APIView):
+    def perform_create(self, serializer):
+        primaryKey = self.kwargs.get('primary_key')
+        watchlist = WatchList.objects.get(pk=primaryKey)
+        serializer.save(watchlist=watchlist)
+class ReviewList(generics.ListAPIView):
+    # queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        return Review.objects.filter(watchlist=self.kwargs['primary_key'])
+
+    def perform_create(self, serializer):
+        watchlist = WatchList.objects.get(pk=self.kwargs['primary_key'])
+        serializer.save(watchlist=watchlist)
+
+class ReviewDetails(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+# Reviews using generics and mixins
+# class ReviewDetails(mixins.RetrieveModelMixin, generics.GenericAPIView):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
+
+#     def get(self, request, *args, **kwargs):
+#         return self.retrieve(request, *args, **kwargs)
+
+# class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
+
+#     def get(self, request, *args, **kwargs):
+#         return self.list(request, *args, **kwargs)
+
+#     def post(self, request, *args, **kwargs):
+        # return self.create(request, *args, **kwargs)
+
 class StreamPlatformAV(APIView):
     def get(self, request):
         platform = StreamPlatform.objects.all()
