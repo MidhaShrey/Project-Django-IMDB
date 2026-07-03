@@ -5,6 +5,7 @@ from rest_framework import status, mixins, generics
 from watchlist_app.models import (Review, WatchList, StreamPlatform)
 from watchlist_app.api.serializers import (WatchlistSerializer, StreamPlatformSerializer, ReviewSerializer)
 
+# Create reviews for specific id
 class ReviewCreate(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
@@ -13,11 +14,12 @@ class ReviewCreate(generics.CreateAPIView):
         watchlist = WatchList.objects.get(pk=primaryKey)
         serializer.save(watchlist=watchlist)
 class ReviewList(generics.ListAPIView):
-    # queryset = Review.objects.all()
+    # queryset = Review.objects.all() #used to get all the objects
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
-        return Review.objects.filter(watchlist=self.kwargs['primary_key'])
+        primaryKey = self.kwargs['primary_key']
+        return Review.objects.filter(watchlist=primaryKey)
 
     def perform_create(self, serializer):
         watchlist = WatchList.objects.get(pk=self.kwargs['primary_key'])
