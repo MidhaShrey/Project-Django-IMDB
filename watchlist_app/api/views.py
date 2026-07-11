@@ -1,9 +1,22 @@
 # from rest_framework.decorators import api_view # for function based views
 from rest_framework.views import APIView # for class based views
 from rest_framework.response import Response
-from rest_framework import status, mixins, generics
+from rest_framework import status, mixins, generics, viewsets
+from django.shortcuts import get_object_or_404
 from watchlist_app.models import (Review, WatchList, StreamPlatform)
 from watchlist_app.api.serializers import (WatchlistSerializer, StreamPlatformSerializer, ReviewSerializer)
+
+class StreamPlatformVS(viewsets.ViewSet):
+    def list(self, request):
+        queryset = StreamPlatform.objects.all()
+        serializer = StreamPlatformSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = StreamPlatform.objects.all()
+        platform = get_object_or_404(queryset, pk=pk)
+        serializer = StreamPlatformSerializer(platform)
+        return Response(serializer.data)
 
 # Create reviews for specific id
 class ReviewCreate(generics.CreateAPIView):
