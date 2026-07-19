@@ -2,11 +2,12 @@
 from rest_framework.views import APIView # for class based views
 from rest_framework.response import Response
 from rest_framework import status, mixins, generics, viewsets
+from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from watchlist_app.models import (Review, WatchList, StreamPlatform)
 from watchlist_app.api.serializers import (WatchlistSerializer, StreamPlatformSerializer, ReviewSerializer)
 
-class StreamPlatformVS(viewsets.ReadOnlyModelViewSet):
+class StreamPlatformVS(viewsets.ModelViewSet):
     queryset = StreamPlatform.objects.all()
     serializer_class = StreamPlatformSerializer
 
@@ -40,10 +41,18 @@ class StreamPlatformVS(viewsets.ReadOnlyModelViewSet):
 class ReviewCreate(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
+    def get_queryset(self):
+        return Review.objects.all()
+
     def perform_create(self, serializer):
         primaryKey = self.kwargs.get('primary_key')
         watchlist = WatchList.objects.get(pk=primaryKey)
-        serializer.save(watchlist=watchlist)
+        user = self.request.user
+
+        if Review.objects.filter(watchlist=watchlist, review_user=user).exists():
+            raise ValidationError("You have already reviewed this watchlist!")
+
+        serializer.save(watchlist=watchlist, review_user=user)
 class ReviewList(generics.ListAPIView):
     # queryset = Review.objects.all() #used to get all the objects
     serializer_class = ReviewSerializer
