@@ -18,7 +18,8 @@ urlpatterns = [
 
     path('stream/<int:primary_key>/review-create/', ReviewCreate.as_view(), name='review-create'),
     path('stream/<int:primary_key>/review/', ReviewList.as_view(), name='review-list'),
-    path('stream/review/<int:pk>/', ReviewDetails.as_view(), name='review-details')
+    path('stream/review/<int:pk>/', ReviewDetails.as_view(), name='review-details'),
+    path('api-auth', include('rest_framework.urls', namespace='rest_framework'))
 ]
 
 # Class Based Views
