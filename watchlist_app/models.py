@@ -33,7 +33,7 @@ class Review(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{str(self.rating)} | {self.watchlist.title} | {self.watchlist.platform.name}"
+        return f"ID:{self.id} | {self.rating} | {self.watchlist.title} | {self.watchlist.platform.name}"
 
 # Updating the Movie model to include more fields
 # class Movie(models.Model):
