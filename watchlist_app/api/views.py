@@ -51,10 +51,18 @@ class ReviewCreate(generics.CreateAPIView):
         primaryKey = self.kwargs.get('primary_key')
         watchlist = WatchList.objects.get(pk=primaryKey)
         user = self.request.user
+        review_queryset = Review.objects.filter(watchlist=watchlist, review_user=user)
 
-        if Review.objects.filter(watchlist=watchlist, review_user=user).exists():
+        if review_queryset.exists():
             raise ValidationError("You have already reviewed this watchlist!")
 
+        if watchlist.number_rating == 0:
+            watchlist.avg_rating = serializer.validated_data['rating']
+        else:
+            watchlist.avg_rating = (watchlist.avg_rating + serializer.validated_data['rating']) / 2
+        watchlist.number_rating += 1
+        watchlist.save()
+        
         serializer.save(watchlist=watchlist, review_user=user)
 class ReviewList(generics.ListAPIView):
     # queryset = Review.objects.all() #used to get all the objects
