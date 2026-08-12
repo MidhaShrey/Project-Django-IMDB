@@ -19,6 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('movies/', include('watchlist_app.urls')), # This is for the normal views before DRF
     path('watch/', include('watchlist_app.api.urls')), # This is for the API views using DRF
+    path('account/', include('user_app.api.urls')), # This is for the API views of user app using DRF
+    # path('movies/', include('watchlist_app.urls')), # This is for the normal views before DRF
 ]
