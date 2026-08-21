@@ -2,8 +2,6 @@
 
 A Django REST Framework API for a movie/show watchlist platform. Users can browse streaming platforms, view watchlisted titles, and leave one review per title with a 1–5 star rating. Authentication is handled via DRF Token Authentication.
 
-Built while following a Udemy course on Django REST Framework.
-
 ## Tech Stack
 
 - **Python** 3.13
