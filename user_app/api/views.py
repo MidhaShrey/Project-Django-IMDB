@@ -29,3 +29,11 @@ def registration_view(request):
             data = serializer.errors
         
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST',])
+def logout_view(request):
+    if request.method == 'POST':
+        request.user.auth_token.delete()
+        data = {
+            'response': 'Logout successful!'}
+        return Response(data, status=status.HTTP_200_OK)
