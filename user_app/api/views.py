@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from user_app.api.serializers import RegistrationSerializer
+from user_app.models import create_auth_token
 
 # Function-based view for user registration
 @api_view(['POST',])
