@@ -112,16 +112,16 @@ watchmate_Udemy/
 ## Setup
 
 1. Clone the repo and create a virtual environment:
-   a. For Mac
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-   b. For Windows
-   ```
-   python3 -m venv venv
-   ./venv/bin/Scripts/activate
-   ```
+   - For Mac
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+   - For Windows
+     ```
+     python3 -m venv venv
+     ./venv/bin/Scripts/activate
+     ```
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
