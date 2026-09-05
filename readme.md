@@ -111,7 +111,7 @@ watchmate_Udemy/
 
 ## Setup
 
-1. Clone the repo and create a virtual environment:
+1. Clone the repo and create a virtual environment:\\
    a. For Mac
    ```bash
    python3 -m venv venv
