@@ -14,4 +14,4 @@ class IsReviewUserOrReadOnly(permissions.BasePermission):
             return True
         else:
             # Check permission for write methods (POST, PUT, PATCH, DELETE)
-            return obj.review_user == request.user
+            return obj.review_user == request.user or request.user.is_staff
