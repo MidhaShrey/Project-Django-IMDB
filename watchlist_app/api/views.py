@@ -71,7 +71,7 @@ class ReviewList(generics.ListAPIView):
     serializer_class = ReviewSerializer
 
     # Object level permission
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         primaryKey = self.kwargs['primary_key']
