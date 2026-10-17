@@ -1,6 +1,6 @@
 # WatchMate
 
-A Django REST Framework API for a movie/show watchlist platform. Users can browse streaming platforms, view watchlisted titles, and leave one review per title with a 1–5 star rating. Authentication is handled via DRF Token Authentication.
+A Django REST Framework API for a movie/show watchlist platform. Users can browse streaming platforms, view watchlisted titles, and leave one review per title with a 1–5 star rating. Authentication supports user registration, DRF Token login/logout, and JWT (access/refresh) tokens via `djangorestframework-simplejwt`.
 
 ## Tech Stack
 
@@ -8,7 +8,8 @@ A Django REST Framework API for a movie/show watchlist platform. Users can brows
 - **Django** 6.0
 - **Django REST Framework** 3.17
 - **SQLite** (default dev database)
-- **Token Authentication** (`rest_framework.authtoken`)
+- **JWT Authentication** (`djangorestframework-simplejwt`) — the project-wide default authentication class
+- **Token Authentication** (`rest_framework.authtoken`) — used for the `/account/login/`, `/account/register/` and `/account/logout/` endpoints
 - **python-dotenv** for environment variable management
 
 ## Project Structure
@@ -37,22 +38,22 @@ watchmate_Udemy/
 │   ├── tests.py
 │   ├── migrations/
 │   └── api/
-│       ├── serializers.py         # ReviewSerializer, WatchlistSerializer, StreamPlatformSerializer
-│       ├── views.py                # StreamPlatformVS, WatchListAV/DetailsAV, ReviewCreate/List/Details
-│       ├── permissions.py         # AdminOrReadOnly, ReviewUserOrReadOnly
-│       └── urls.py                # /watch/ routes
+│       ├── serializers.py         # ReviewSerializer, WatchlistSerializer (nests reviews), StreamPlatformSerializer (nests watchlist)
+│       ├── views.py                # StreamPlatformVS (ModelViewSet), WatchListAV/DetailsAV, ReviewCreate/List/Details
+│       ├── permissions.py         # IsAdminOrReadOnly, IsReviewUserOrReadOnly
+│       └── urls.py                # /watch/ routes (DefaultRouter for stream platforms)
 │
-└── user_app/                      # Auth app: login via token
+└── user_app/                      # Auth app: registration, login/logout, JWT
     ├── __init__.py
     ├── admin.py
     ├── apps.py
-    ├── models.py
+    ├── models.py                  # post_save signal: auto-creates an auth Token for every new User
     ├── views.py
     ├── tests.py
     ├── migrations/
     └── api/
-        ├── serializers.py
-        ├── views.py
+        ├── serializers.py         # RegistrationSerializer
+        ├── views.py               # registration_view, logout_view
         └── urls.py                 # /account/ routes
 ```
 
@@ -74,14 +75,23 @@ watchmate_Udemy/
 - `watchlist` — FK to `WatchList` (`related_name='reviews'`)
 - `active`, `created`, `updated`
 - One review per user per watchlist entry is enforced in `ReviewCreate`
+- In API responses `review_user` is shown as the username (read-only) and the `watchlist` field is omitted
+
+**Nested responses** — `WatchList` responses include their `reviews`, and `StreamPlatform` responses include their `watchlist` entries (each with its reviews).
 
 ## API Endpoints
 
 ### Auth — `/account/`
 
-| Method | Endpoint      | Description                        |
-|--------|---------------|-------------------------------------|
-| POST   | `/account/login/` | Obtain an auth token (username/password) |
+| Method | Endpoint                   | Description                                                  |
+|--------|-----------------------------|---------------------------------------------------------------|
+| POST   | `/account/register/`        | Register a user (`username`, `email`, `password`, `password2`); returns the user details and a DRF auth token |
+| POST   | `/account/login/`           | Obtain a DRF auth token (username/password)                   |
+| POST   | `/account/logout/`          | Delete the current user's DRF auth token                      |
+| POST   | `/account/api/token/`       | Obtain a JWT access + refresh pair (username/password)        |
+| POST   | `/account/api/token/refresh/` | Exchange a refresh token for a new access token (refresh tokens are rotated) |
+
+Registration fails if the passwords don't match or the email is already in use. A DRF token is also created automatically for every new user via a `post_save` signal (`user_app/models.py`).
 
 ### Watchlist — `/watch/`
 
@@ -92,22 +102,35 @@ watchmate_Udemy/
 | GET    | `/watch/detail/<id>/`                  | Retrieve a watchlist entry            |
 | PUT    | `/watch/detail/<id>/`                  | Update a watchlist entry              |
 | DELETE | `/watch/detail/<id>/`                  | Delete a watchlist entry              |
+| GET    | `/watch/`                              | DRF router API root (links to `stream/`) |
 | GET    | `/watch/stream/`                       | List stream platforms                 |
 | POST   | `/watch/stream/`                       | Create a stream platform              |
 | GET    | `/watch/stream/<id>/`                  | Retrieve a stream platform             |
-| PUT    | `/watch/stream/<id>/`                  | Update a stream platform               |
+| PUT/PATCH | `/watch/stream/<id>/`               | Update a stream platform               |
 | DELETE | `/watch/stream/<id>/`                  | Delete a stream platform               |
 | POST   | `/watch/<id>/review-create/`           | Create a review for a watchlist entry |
 | GET    | `/watch/<id>/review/`                  | List reviews for a watchlist entry (auth required) |
 | GET    | `/watch/review/<id>/`                  | Retrieve a review                      |
-| PUT    | `/watch/review/<id>/`                  | Update a review (owner only)          |
-| DELETE | `/watch/review/<id>/`                  | Delete a review (owner only)          |
+| PUT/PATCH | `/watch/review/<id>/`               | Update a review (owner or staff)      |
+| DELETE | `/watch/review/<id>/`                  | Delete a review (owner or staff)      |
+
+Stream platforms are served by a `ModelViewSet` registered on a `DefaultRouter`, so list/detail routes share one viewset. Write operations on `/watch/list/`, `/watch/detail/<id>/` and `/watch/stream/` require a staff user.
 
 ## Permissions
 
-- **`AdminOrReadOnly`** — anyone can read; only admins can write.
-- **`ReviewUserOrReadOnly`** — anyone can read; only the review's author can update/delete it (object-level permission).
-- Authentication is via `Token` — clients must send `Authorization: Token <token>` after logging in.
+- **`IsAdminOrReadOnly`** — anyone can read; only staff users can write (watchlist and stream platform endpoints).
+- **`IsReviewUserOrReadOnly`** — anyone can read; only the review's author (or a staff user) can update/delete it (object-level permission).
+- **`IsAuthenticated`** — required to create a review and to list the reviews of a watchlist entry.
+
+## Authentication
+
+The project-wide default (`REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES']` in `settings.py`) is **JWT**. Obtain a token pair from `/account/api/token/` and send it on requests:
+
+```
+Authorization: Bearer <access_token>
+```
+
+`SIMPLE_JWT` is configured with `ROTATE_REFRESH_TOKENS = True`. The DRF Token and Basic authentication options are left commented out in `settings.py`; `/account/login/` and `/account/register/` still issue DRF tokens, but protected endpoints will not accept `Authorization: Token <token>` unless `TokenAuthentication` is re-enabled in settings.
 
 ## Setup
 
@@ -148,4 +171,7 @@ The API will be available at `http://127.0.0.1:8000/`, and the Django admin at `
 ## Notes
 
 - `DEBUG` is currently hardcoded to `True` in `settings.py` — set this to `False` and configure `ALLOWED_HOSTS` before deploying.
+- `djangorestframework-simplejwt` is imported and configured in `settings.py` and `user_app/api/urls.py` but is **not listed in `requirements.txt`** — install it with `pip install djangorestframework-simplejwt` (and add it to `requirements.txt`) before running the server.
+- `user_app` is not in `INSTALLED_APPS`; its token-creation signal only loads because `user_app/api/views.py` imports `user_app.models`.
+- `/account/logout/` deletes the user's DRF token and has no explicit permission class, so it depends on a request authenticated as a user; JWTs issued by `/account/api/token/` are not invalidated by it.
 - Watchlist rating logic (`avg_rating`) currently averages only the incoming rating with the existing average, not a true running mean across all reviews.
