@@ -15,7 +15,7 @@ A Django REST Framework API for a movie/show watchlist platform. Users can brows
 ## Project Structure
 
 ```
-watchmate_Udemy/
+watchmate/
 ├── manage.py                      # Django management entrypoint
 ├── requirements.txt               # Python dependencies
 ├── .env                            # Environment variables (SECRET_KEY, etc.)
